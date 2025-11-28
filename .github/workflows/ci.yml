@@ -7,12 +7,20 @@ on:
     branches: [ main ]
 
 jobs:
-  
+
   lint:
     name: Lint & Format Check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Debug - show paths
+        run: | 
+          echo "PWD+$(pwd)"
+          echo "Top-level files:"
+          ls -la
+          echo "Nested structure:"
+          ls -la hello-devops || true
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -26,8 +34,8 @@ jobs:
 
       - name: Black check (format)
         run: |
-          # exit non-zero if formatting required
-          black --check .
+            # Run check specifically against the nested folder
+            black --check hello-devop
 
       - name: Flake8 lint
         run: |
