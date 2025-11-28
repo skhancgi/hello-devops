@@ -19,8 +19,8 @@ jobs:
           echo "PWD=$(pwd)"
           echo "Top-level files:"
           ls -la
-          echo "Recursive listing (top 3 levels):"
-          find . -maxdepth 3 -print
+          echo "Recursive listing (top 4 levels):"
+          find . -maxdepth 4 -print || true
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -35,19 +35,19 @@ jobs:
       - name: Determine python code root
         id: detect_root
         run: |
-          # Look for hello.py under a subfolder; if found, use its parent folder.
-          NESTED_DIR=$(find . -type f -name "hello.py" -printf '%h\n' | head -n 1)
-          if [ -n "$NESTED_DIR" ] && [ "$NESTED_DIR" != "." ]; then
-            echo "found_nested=1" >> $GITHUB_OUTPUT
-            echo "code_root=$NESTED_DIR" >> $GITHUB_OUTPUT
-          else
-            echo "found_nested=0" >> $GITHUB_OUTPUT
-            echo "code_root=." >> $GITHUB_OUTPUT
+          # Try to find a file we expect (hello.py or http_util.py). Use its parent dir as code root.
+          CODE_ROOT=$(find . -type f \( -name "hello.py" -o -name "http_util.py" \) -printf '%h\n' | head -n 1)
+          if [ -z "$CODE_ROOT" ]; then
+            # fallback: use repo root
+            CODE_ROOT="."
           fi
+          echo "Detected code root: $CODE_ROOT"
+          echo "code_root=$CODE_ROOT" >> $GITHUB_OUTPUT
 
       - name: Show selected code root
         run: |
-          black --check hello-devops
+          echo "CODE_ROOT=${{ steps.detect_root.outputs.code_root }}"
+          ls -la "${{ steps.detect_root.outputs.code_root }}" || true
 
       - name: Black check (format)
         run: |
