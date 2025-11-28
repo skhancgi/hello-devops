@@ -1,0 +1,10 @@
+# runtime/dev dependencies for CI
+requests==2.31.0
+
+# test/dev tools used by CI (we also install them dynamically in the workflow)
+pytest
+pytest-cov
+flake8
+black
+bandit
+build
