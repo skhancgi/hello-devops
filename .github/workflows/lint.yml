@@ -30,6 +30,31 @@ jobs:
         run: |
           pip install black flake8
 
+      - name: Runner debug - show layout & file heads
+        run: |
+          echo "PWD: $(pwd)"
+          echo "Top-level listing:"
+          ls -la
+          echo "Recursive listing (top 4 levels):"
+          find . -maxdepth 4 -print || true
+          echo
+          echo "=== HEAD of nested tests/test_hello.py (if exists) ==="
+          if [ -f hello-devops/tests/test_hello.py ]; then sed -n '1,200p' hello-devops/tests/test_hello.py; else echo "NOT FOUND: hello-devops/tests/test_hello.py"; fi
+          echo
+          echo "=== HEAD of nested http_util.py (if exists) ==="
+          if [ -f hello-devops/http_util.py ]; then sed -n '1,200p' hello-devops/http_util.py; else echo "NOT FOUND: hello-devops/http_util.py"; fi
+          echo
+          echo "=== HEAD of nested tests/test_util.py (if exists) ==="
+          if [ -f hello-devops/tests/test_util.py ]; then sed -n '1,200p' hello-devops/tests/test_util.py; else echo "NOT FOUND: hello-devops/tests/test_util.py"; fi
+
+      - name: Black diff for nested files (what Black would change)
+        run: |
+          python -m pip install --upgrade pip black
+          echo "Black version: $(black --version)"
+          echo "Running black --diff on nested folder (if exists)..."
+          if [ -d hello-devops ]; then black --diff hello-devops || true; else echo "Nested folder not present"; fi
+
+
       - name: Black (format check only)
         run: |
           black --check .
