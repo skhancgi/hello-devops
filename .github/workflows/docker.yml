@@ -29,5 +29,5 @@ jobs:
         with:
           push: true
           tags: |
-            ghcr.io/${{ toLower(github.repository_owner) }}/hello-devops:${{ github.ref_name }}
-            ghcr.io/${{ toLower(github.repository_owner) }}/hello-devops:latest
+            ghcr.io/skhancgi/hello-devops:${{ github.ref_name }}
+            ghcr.io/skhancgi/hello-devops:latest
