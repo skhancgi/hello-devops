@@ -1,0 +1,34 @@
+name: Simulated Deployment
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pull image from GHCR
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          docker pull ghcr.io/${{ github.repository_owner }}/hello-devops:${{ github.ref_name }}
+
+      - name: Stop old container
+        run: docker stop hello-devops || true
+
+      - name: Remove old container
+        run: docker rm hello-devops || true
+
+      - name: Run new container
+        run: |
+          docker run -d --name hello-devops -p 8000:8000 ghcr.io/${{ github.repository_owner }}/hello-devops:${{ github.ref_name }}
+
+      - name: Smoke test deployment
+        run: |
+          sleep 3
+          curl -f http://localhost:8000/
