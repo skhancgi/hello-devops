@@ -1,0 +1,58 @@
+name: Docker Build & Deploy
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  docker:
+    name: Build & Push Docker Image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          push: true
+          tags: |
+            ghcr.io/skhancgi/hello-devops:${{ github.ref_name }}
+            ghcr.io/skhancgi/hello-devops:latest
+
+  deploy:
+    name: Simulated Deployment
+    runs-on: ubuntu-latest
+    needs: docker   
+    steps:
+      - name: Login to GHCR
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Pull image
+        run: docker pull ghcr.io/skhancgi/hello-devops:${{ github.ref_name }}
+
+      - name: Stop old container
+        run: docker stop hello-devops || true
+
+      - name: Remove old container
+        run: docker rm hello-devops || true
+
+      - name: Run new container
+        run: docker run -d --name hello-devops -p 8000:8000 ghcr.io/skhancgi/hello-devops:${{ github.ref_name }}
+
+      - name: Smoke test
+        run: |
+          sleep 3
+          curl -f http://localhost:8000/
