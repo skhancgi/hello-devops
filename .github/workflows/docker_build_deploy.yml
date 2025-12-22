@@ -32,27 +32,23 @@ jobs:
             ghcr.io/skhancgi/hello-devops:latest
 
   deploy:
-    name: Simulated Deployment
+    name: Deploy to Azure Container Apps
     runs-on: ubuntu-latest
-    needs: docker   
+    needs: docker
+
     steps:
-      - name: Login to GHCR
+      - name: Azure login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy image to Container App
         run: |
-          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          az containerapp update \
+            --name ca-skhancgi-fastapi \
+            --resource-group rg-skhancgi-cd-demo \
+            --image ghcr.io/skhancgi/hello-devops:${{ github.ref_name }}
 
-      - name: Pull image
-        run: docker pull ghcr.io/skhancgi/hello-devops:${{ github.ref_name }}
-
-      - name: Stop old container
-        run: docker stop hello-devops || true
-
-      - name: Remove old container
-        run: docker rm hello-devops || true
-
-      - name: Run new container
-        run: docker run -d --name hello-devops -p 8000:8000 ghcr.io/skhancgi/hello-devops:${{ github.ref_name }}
-
-      - name: Smoke test
+      - name: Deployment confirmation
         run: |
-          sleep 3
-          curl -f http://localhost:8000/
+          echo "Deployment of ${{ github.ref_name }} triggered to Azure Container Apps"
