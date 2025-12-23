@@ -45,7 +45,7 @@ jobs:
       - name: Deploy image to Container App
         run: |
           az containerapp update \
-            --name ca-skhancgi-fastapi \
+            --name ca-skhancgi-fastap \
             --resource-group rg-skhancgi-cd-demo \
             --image ghcr.io/skhancgi/hello-devops:${{ github.ref_name }}
 
